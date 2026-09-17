@@ -3,7 +3,7 @@
     <default>
         <acme_seller_refund>
             <general>
-                <window_days>14</window_days>
+                <window_days>7</window_days>
             </general>
             <erp>
                 <base_url>http://erp-refund-stub:8081</base_url>

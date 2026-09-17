@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Acme\SellerRefund\Test\Unit\Model;
 
 use Acme\SellerRefund\Exception\ValidationException;
+use Acme\SellerRefund\Model\EligibilityResult;
+use Acme\SellerRefund\Model\RefundEligibility;
 use Acme\SellerRefund\Model\RefundValidator;
 use Acme\SellerRefund\Model\SellerLineResolver;
 use Acme\SellerRefund\Model\Submission\RefundSubmission;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Item as OrderItem;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -21,6 +24,10 @@ class RefundValidatorTest extends TestCase
 {
     private SellerLineResolver&MockObject $sellerLineResolver;
 
+    private RefundEligibility&MockObject $eligibility;
+
+    private TimezoneInterface&MockObject $timezone;
+
     private RefundValidator $validator;
 
     /** @var OrderInterface&MockObject */
@@ -29,8 +36,12 @@ class RefundValidatorTest extends TestCase
     protected function setUp(): void
     {
         $this->sellerLineResolver = $this->createMock(SellerLineResolver::class);
+        $this->eligibility = $this->createMock(RefundEligibility::class);
+        $this->eligibility->method('check')->willReturn(new EligibilityResult(true));
+        $this->timezone = $this->createMock(TimezoneInterface::class);
+        $this->timezone->method('date')->willReturn(new \DateTimeImmutable('2026-09-08 12:00:00'));
         $this->order = $this->createMock(OrderInterface::class);
-        $this->validator = new RefundValidator($this->sellerLineResolver);
+        $this->validator = new RefundValidator($this->sellerLineResolver, $this->eligibility, $this->timezone);
     }
 
     /**
@@ -107,6 +118,16 @@ class RefundValidatorTest extends TestCase
         ]);
 
         $submission = new RefundSubmission('not_a_reason', [5 => '1']);
+
+        $this->expectException(ValidationException::class);
+        $this->validator->validate($this->order, $submission, []);
+    }
+
+    public function testIneligibleOrderIsRejectedBeforeLineValidation(): void
+    {
+        $this->eligibility->method('check')->willReturn(new EligibilityResult(false, ['window_expired']));
+
+        $submission = new RefundSubmission('defect', [5 => '1']);
 
         $this->expectException(ValidationException::class);
         $this->validator->validate($this->order, $submission, []);

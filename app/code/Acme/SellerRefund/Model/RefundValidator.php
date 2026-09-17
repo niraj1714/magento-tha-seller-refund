@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Acme\SellerRefund\Model;
 
 use Acme\SellerRefund\Exception\ValidationException;
+use Acme\SellerRefund\Model\RefundEligibility;
 use Acme\SellerRefund\Model\Submission\RefundSubmission;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 
 /**
@@ -23,7 +25,9 @@ class RefundValidator
     ];
 
     public function __construct(
-        private readonly SellerLineResolver $sellerLineResolver
+        private readonly SellerLineResolver $sellerLineResolver,
+        private readonly RefundEligibility $eligibility,
+        private readonly TimezoneInterface $timezone
     ) {
     }
 
@@ -34,6 +38,10 @@ class RefundValidator
      */
     public function validate(OrderInterface $order, RefundSubmission $submission, array $priorRefundedByItem): void
     {
+        if (!$this->eligibility->check($order, $this->timezone->date())->isEligible()) {
+            throw new ValidationException(__('This order is no longer eligible for a seller refund.'));
+        }
+
         if (!in_array($submission->reasonCode, self::ALLOWED_REASONS, true)) {
             throw new ValidationException(__('The refund reason "%1" is not recognised.', $submission->reasonCode));
         }
