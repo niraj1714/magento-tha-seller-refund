@@ -76,6 +76,16 @@ Bash scripts are in `bin/` with PowerShell (`.ps1`) twins for Windows.
 - `bin/assignment-cache-flush [flags]` - clear Magento caches / generated code /
   static after editing the module (see the matrix below).
 
+### Candidate submission
+
+Part 3 implementation: [e52104f](https://github.com/niraj1714/magento-tha-seller-refund/commit/e52104f)
+
+Exact focused regression test:
+
+```bash
+bin/assignment-test unit --filter RefundEligibilityTest
+```
+
 ### Edit / rebuild matrix
 
 The refund module is bind-mounted into the web container and the image runs in

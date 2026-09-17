@@ -6,7 +6,7 @@ The refund window was enforced only by the admin order-view button. A direct POS
 
 Regression coverage proves that day seven is accepted and day eight is rejected, and that the validator refuses an ineligible order before line validation. This closes the browser/controller bypass without changing refund calculations, persistence shape, or ERP payloads.
 
-Implementation commit: to be linked after commit, as `IMPLEMENTATION_COMMIT`.
+Implementation commit: [e52104f](https://github.com/niraj1714/magento-tha-seller-refund/commit/e52104f).
 
 Exact test command:
 
